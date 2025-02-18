@@ -1,0 +1,26 @@
+@startuml
+actor Пользователь
+participant "MES" as ClientApp
+participant "Сервер кеширования" as CacheServer
+participant "Кеш" as Cache
+participant "База данных" as Database
+
+Пользователь -> ClientApp: Запрос на отображение списка заказов
+ClientApp -> CacheServer: Запрос к кешу
+CacheServer -> Cache: Проверка наличия данных
+alt Данные найдены
+    Cache -> CacheServer: Возврат данных
+    CacheServer -> ClientApp: Возврат данных
+    ClientApp -> Пользователь: Отображение списка заказов
+else Данные не найдены
+    CacheServer -> Database: Запрос данных из базы
+    Database -> CacheServer: Возврат данных
+    CacheServer -> Cache: Сохранение данных в кеше
+    CacheServer -> ClientApp: Возврат данных
+    ClientApp -> Пользователь: Отображение списка заказов
+end
+
+note right of Database: Обновление статуса заказа
+Database -> CacheServer: Инвалидация кеша
+
+@enduml
